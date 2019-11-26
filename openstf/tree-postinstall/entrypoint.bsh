@@ -397,14 +397,19 @@ p2 -t /etc/alertmanager.yml.p2 -o /run/alertmanager.yml
 log "Templating postgres_exporter configuration..."
 p2 -t /etc/postgres_exporter.queries.yml.p2 -o /run/postgres_exporter.queries.yml
 
-log "Checking postgres database status..."
+log "Setting up RethinkDB..."
+
+generate_or_load_password RETHINKDB_ADMIN_PASSWORD
+
+log "Templating rethink DB configuration rile"
+p2 -t /etc/rethinkdb.conf.p2 -o /run/rethinkdb.conf
 
 log "Ensuring $RETHINK_DB_DATA_DIR exists"
 mkdir -m 755 -p "$RETHINK_DB_DATA_DIR"
 
 log "Checking permissions..."
 chmod 700 "$RETHINK_DB_DATA_DIR"
-chown -R rethinkdb "$RETHINK_DB_DATA_DIR"
+chown -R rethinkdb: "$RETHINK_DB_DATA_DIR"
 
 # TODO: start rethink db here.
 

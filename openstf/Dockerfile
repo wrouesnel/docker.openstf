@@ -152,6 +152,7 @@ ENV \
     SMTP_FROM= \
     SMTP_USERNAME= \
     SMTP_PASSWORD= \
+    RETHINKDB_ADMIN_PASSWORD= \
     ALERT_EMAIL_ADDRESSES= \
     DEV_ALLOW_SELF_SIGNED=no \
     DEV_ALLOW_EPHEMERAL_DATA=no \
@@ -174,7 +175,7 @@ RUN \
     rm -rf /usr/local/share/ca-certificates && \
     ln -sf /run/ca-certificates /usr/local/share/ca-certificates
 
-EXPOSE 443/tcp 5432/tcp 561/tcp
+EXPOSE 443/tcp 561/tcp
 
 COPY healthcheck.sh /healthcheck.sh
 HEALTHCHECK --interval=10s --timeout=10s --retries=3 CMD /healthcheck.sh

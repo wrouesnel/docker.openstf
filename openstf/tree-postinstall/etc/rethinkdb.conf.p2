@@ -1,0 +1,14 @@
+# Configuration file template for rethinkdb
+
+directory={{RETHINK_DB_DATA_DIR}}
+cache-size=auto
+
+server-name={{HOSTNAME}}
+initial-password={{RETHINKDB_ADMIN_PASSWORD}}
+
+http-port=10808
+
+no-update-check
+
+runuser=rethinkdb
+rungroup=rethinkdb

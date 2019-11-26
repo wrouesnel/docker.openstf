@@ -1,0 +1,13 @@
+#!/bin/bash
+
+# Setup logging fifos.
+[ ! -e /run/log/rethinkdb ] && mkfifo /run/log/rethinkdb
+#[ ! -e /run/log/rethinkdb_log ] && mkfifo /run/log/rethinkdb_log
+
+# RethinkDB needs to be able to write to the log fifo
+#chown rethinkdb: /run/log/rethinkdb_log
+
+exec rethinkdb \
+    --config-file /run/rethinkdb.conf \
+    > /run/log/rethinkdb 2>&1
+
