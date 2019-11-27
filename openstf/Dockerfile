@@ -2,11 +2,12 @@ ARG DOCKER_PREFIX=
 ARG DOCKERHUB_PREFIX=
 
 # Pre-requisite builds
-FROM ${DOCKERHUB_PREFIX}golang:1.10 AS utilbuild
+FROM ${DOCKERHUB_PREFIX}golang:1.13 AS utilbuild
 
 RUN mkdir -p /go/src/local/utilsrc/
 COPY utilsrc/ /go/src/local/utilsrc/
-RUN go build -o /go/bin/localip local/utilsrc/localip/cmd/localip
+RUN go build -o /go/bin/localip local/utilsrc/localip/cmd/localip && \
+    go build -o /go/bin/x509tomincrypt local/utilsrc/x509tomincrypt/cmd/x509tomincrypt
 
 FROM ${DOCKER_PREFIX}ubuntu:bionic
 
@@ -103,14 +104,18 @@ RUN wget -O /tmp/get-pip.py $URL_GETPIP && \
 #COPY --from=utilbuild /go/bin/promtargets /usr/local/bin/promtargets
 #COPY --from=utilbuild /go/bin/amquorum /usr/local/bin/amquorum
 COPY --from=utilbuild /go/bin/localip /usr/local/bin/localip
+COPY --from=utilbuild /go/bin/x509tomincrypt /usr/local/bin/x509tomincrypt
 
 # Install OpenSTF dependencies
 RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -y \
     graphicsmagick libzmq5 libzmq3-dev yasm pkg-config 
 
 # ADB
+ENV ANDROID_RUN_DIR=/run/android
 RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -y \
-    adb
+    adb openssh-client && \
+    # Redirect /root/.android to /run/android to be compatible with read-only root
+    ln -sf ${ANDROID_RUN_DIR} /root/.android
 
 # RethinkDB
 ARG URL_RETHINKDB_REPO="https://download.rethinkdb.com/apt"
@@ -153,6 +158,7 @@ ENV \
     SMTP_USERNAME= \
     SMTP_PASSWORD= \
     RETHINKDB_ADMIN_PASSWORD= \
+    ADB_PRIVATE_KEY= \
     ALERT_EMAIL_ADDRESSES= \
     DEV_ALLOW_SELF_SIGNED=no \
     DEV_ALLOW_EPHEMERAL_DATA=no \

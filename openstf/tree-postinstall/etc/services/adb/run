@@ -1,0 +1,7 @@
+#!/bin/bash
+
+# Setup logging fifos.
+[ ! -e /run/log/adb ] && mkfifo /run/log/adb
+
+exec adb -P 5037 server nodaemon > /run/log/adb 2>&1
+

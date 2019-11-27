@@ -21,7 +21,7 @@ IMAGE_NAME=openstf
 DEV_SETTINGS := -e SSL_CLIENT_CACERT=disabled -e DEV_ALLOW_SELF_SIGNED=yes \
 		-e DEV_ALLOW_EPHEMERAL_DATA=yes -e ADMIN_AUTH=disabled -e DEV_STANDALONE=yes \
 		-e DEV_ALLOW_DEFAULT_TRUST=yes -e DEV_NO_ALERT_EMAILS=yes -e DEV_NO_SMARTHOST=yes \
-		-e ADMIN_AUTH=no -e DEV_NETBOX_DEBUG=yes
+		-e ADMIN_AUTH=no -v /dev/bus/usb:/dev/bus/usb --privileged
 
 EXTRA_DEV_SETTINGS ?= 
 

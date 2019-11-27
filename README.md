@@ -54,6 +54,11 @@ protected behind the admin interface and require POST commands:
 * `ALERT_EMAIL_ADDRESS=`
   email address to send alerts to.
   
+* `RETHINKDB_ADMIN_PASSWORD` initial admin password to generate for rethinkDB. Automatically
+  generated if unset.
+
+* `ADB_PRIVATE_KEY` file path or literal ADB private key to set for the ADB server. Automatically
+  generated if unset.
   
 * `DEV_ALLOW_SELF_SIGNED=no`
   Allows a blank value for `SSL_SERVER_CERT` and `SSL_SERVER_KEY`. This causes
