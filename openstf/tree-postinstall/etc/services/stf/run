@@ -3,10 +3,11 @@
 # Setup logging fifos.
 [ ! -e /run/log/stf ] && mkfifo /run/log/stf
 
-export AUTHKEY="$RETHINKDB_ADMIN_PASSWORD"
+export RETHINKDB_ENV_AUTHKEY="$(cat ${STF_DATA_DIR}/rethinkdb.password)"
 
 exec stf local \
+    --public-ip "$STF_PUBLIC_ADDR" \
     --storage-type temp \
-    --storage-options "{ \"save-dir\" : \"${STF_STORAGE_DIR}\" }"
+    --storage-options "{ \"save-dir\" : \"${STF_STORAGE_DIR}\" }" \
     > /run/log/stf 2>&1
 

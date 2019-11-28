@@ -167,6 +167,10 @@ if [ -z $HOSTNAME ] ; then
 fi
 export HOSTNAME
 
+if [ -z "$STF_PUBLIC_ADDR" ] ; then
+    export STF_PUBLIC_ADDR=$(localip)
+fi
+
 if [ -z "$WEBUI_DNS_NAME" ] ; then
     WEBUI_DNS_NAME="$HOSTNAME"
 fi
@@ -445,6 +449,8 @@ chmod 644 "${ANDROID_RUN_DIR}"/adbkey.pub
 # STF
 mkdir -p "${STF_DATA_DIR}"
 chmod 755 "${STF_DATA_DIR}"
+
+echo "$RETHINKDB_ADMIN_PASSWORD" > "${STF_DATA_DIR}/rethinkdb.password"
 
 log "Create logging fifo directory"
 mkdir -p /run/log

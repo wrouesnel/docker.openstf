@@ -84,6 +84,11 @@ http {
       metric_latency:observe(tonumber(ngx.var.request_time), {host})
     ';
 
+    map $http_upgrade $connection_upgrade {
+        default  upgrade;
+        ''       close;
+    }
+
     ## 
     # Server configuration
     ##
@@ -183,18 +188,22 @@ http {
             proxy_set_header Referer $http_referer;
 
             proxy_set_header Upgrade $http_upgrade;
-            proxy_set_header Connection "Upgrade";
+            proxy_set_header Connection $connection_upgrade;
         }
     
-        # Netbox application
+        # STF application
         location / {
-            # TODO!
-            return 204;
-            
+            proxy_pass http://127.0.0.1:7100/;
+            proxy_buffering off;
+
+            proxy_set_header Host $http_host;
             proxy_set_header X-Forwarded-Host $server_name;
             proxy_set_header X-Real-IP $remote_addr;
             proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
             proxy_set_header X-Forwarded-Proto $scheme;
+
+            proxy_set_header Upgrade $http_upgrade;
+            proxy_set_header Connection $connection_upgrade;
 
             add_header P3P 'CP="ALL DSP COR PSAa PSDa OUR NOR ONL UNI COM NAV"';
         }

@@ -21,7 +21,6 @@ protected behind the admin interface and require POST commands:
 
 * `HOSTNAME`
   Persistent hostname of this node. If unset defaults to the docker hostname.
-  This is used as the `nodename` for all CockroachDB replication operations.
 
 * `ADMIN_USER=admin`
   Username of the admin user for accessing online management functions of the
@@ -59,7 +58,10 @@ protected behind the admin interface and require POST commands:
 
 * `ADB_PRIVATE_KEY` file path or literal ADB private key to set for the ADB server. Automatically
   generated if unset.
-  
+
+* `STF_PUBLIC_ADDR` is the address STF should announce the URLs it is hosted at. If unset, defaults
+  to the IP address of the container.
+
 * `DEV_ALLOW_SELF_SIGNED=no`
   Allows a blank value for `SSL_SERVER_CERT` and `SSL_SERVER_KEY`. This causes
   the container to generate a self-signed certificate on startup. It is not a
