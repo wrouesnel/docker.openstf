@@ -202,6 +202,7 @@ touch $ALERTMANAGER_PEERS_FILE
 export ALERTMANAGER_DATA_DIRECTORY=$DATA_DIR/alertmanager
 export DATA_TMP_DIR="$DATA_DIR/tmp"
 export REDIS_DATA_DIR=$DATA_DIR/redis
+export STF_DATA_DIR=$DATA_DIR/stf
 
 # Make the data tmp dir if needed
 mkdir -p "$DATA_TMP_DIR" || fatal "Could not make data temporary directory"
@@ -403,7 +404,6 @@ log "Templating postgres_exporter configuration..."
 p2 -t /etc/postgres_exporter.queries.yml.p2 -o /run/postgres_exporter.queries.yml
 
 log "Setting up RethinkDB..."
-
 generate_or_load_password RETHINKDB_ADMIN_PASSWORD
 
 log "Templating rethink DB configuration rile"
@@ -420,19 +420,31 @@ export ANDROID_RUN_DIR=/run/android
 log "Setting up Android run directory ${ANDROID_RUN_DIR}..."
 mkdir -m 755 -p "$ANDROID_RUN_DIR"
 
-handle_file_input_envvar      --allow-blank          ADB_PRIVATE_KEY         "${ANDROID_RUN_DIR}"/adbkey
 if [ -z "${ADB_PRIVATE_KEY}" ]; then
-    log "No ADB private key supplied. Generating one."
-    rm -f "${ANDROID_RUN_DIR}"/adbkey || true
-    if ! openssl genpkey -out "${ANDROID_RUN_DIR}"/adbkey -algorithm RSA -pkeyopt rsa_keygen_bits:2048 2> /dev/null ; then
-        fatal 1 "Failed to generate a new ADB key."
+    log "No ADB private key supplied. Checking for a generated one already..."
+    export ADB_PRIVATE_KEY="${DATA_DIR}/adbkey"
+    if [ -e "${DATA_DIR}/adbkey" ]; then
+        log "Found an existing ADB private key from a previous run. Using that."
+    else
+        log "No existing key found. Generating a new unique key which will be stored at "${DATA_DIR}/adbkey""
+        if ! openssl genpkey -out "${DATA_DIR}/adbkey" \
+                -algorithm RSA -pkeyopt rsa_keygen_bits:2048 2> /dev/null ; then
+            fatal 1 "Failed to generate a new ADB key."
+        fi
     fi
+    chmod 600 "${DATA_DIR}/adbkey"
 fi
+
+handle_file_input_envvar    ADB_PRIVATE_KEY "${ANDROID_RUN_DIR}"/adbkey
 chmod 600 "${ANDROID_RUN_DIR}"/adbkey
 
 log "Extracting ADB public key from ADB private key..."
 x509tomincrypt "${ANDROID_RUN_DIR}"/adbkey > "${ANDROID_RUN_DIR}"/adbkey.pub
 chmod 644 "${ANDROID_RUN_DIR}"/adbkey.pub
+
+# STF
+mkdir -p "${STF_DATA_DIR}"
+chmod 755 "${STF_DATA_DIR}"
 
 log "Create logging fifo directory"
 mkdir -p /run/log

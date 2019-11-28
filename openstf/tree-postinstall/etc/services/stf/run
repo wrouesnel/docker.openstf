@@ -1,0 +1,12 @@
+#!/bin/bash
+
+# Setup logging fifos.
+[ ! -e /run/log/stf ] && mkfifo /run/log/stf
+
+export AUTHKEY="$RETHINKDB_ADMIN_PASSWORD"
+
+exec stf local \
+    --storage-type temp \
+    --storage-options "{ \"save-dir\" : \"${STF_STORAGE_DIR}\" }"
+    > /run/log/stf 2>&1
+
