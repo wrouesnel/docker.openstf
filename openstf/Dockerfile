@@ -53,7 +53,7 @@ RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install --no-instal
     netcat \
     openssl \
     pwgen \
-    wget curl dnsutils apache2-utils net-tools iproute2 rsync sudo jq ssl-cert less expect nano \
+    wget curl dnsutils apache2-utils net-tools iproute2 rsync sudo jq ssl-cert less expect nano git \
     python3 python3-dev build-essential && \
     # Templating engine
     wget -O /usr/local/bin/p2 $URL_P2CLI && \
@@ -136,8 +136,11 @@ RUN \
     apt-get install -y nodejs npm
 
 # STF
+ARG URL_STF_REPO="https://github.com/openstf/stf.git"
+ARG URL_STF_COMMIT=d4efda70d7378e880b29547fd3dd394809ec488a
+
 RUN \
-    npm install -g stf --unsafe-perm
+    npm install -g "${URL_STF_REPO}#${URL_STF_COMMIT}" --unsafe-perm
 
 # Install the post-install tree
 COPY tree-postinstall/ /
