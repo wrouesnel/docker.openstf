@@ -165,10 +165,15 @@ export PATH=$PATH
 if [ -z $HOSTNAME ] ; then
     HOSTNAME=$(hostname -f)
 fi
+
+if [ -z $HOSTNAME ] ; then
+    HOSTNAME=$(hostname)
+fi
+
 export HOSTNAME
 
-if [ -z "$STF_PUBLIC_ADDR" ] ; then
-    export STF_PUBLIC_ADDR=$(localip)
+if [ -z "$X_STF_PUBLIC_ADDR" ] ; then
+    export X_STF_PUBLIC_ADDR=$(localip)
 fi
 
 if [ -z "$WEBUI_DNS_NAME" ] ; then
@@ -206,7 +211,7 @@ touch $ALERTMANAGER_PEERS_FILE
 export ALERTMANAGER_DATA_DIRECTORY=$DATA_DIR/alertmanager
 export DATA_TMP_DIR="$DATA_DIR/tmp"
 export REDIS_DATA_DIR=$DATA_DIR/redis
-export STF_DATA_DIR=$DATA_DIR/stf
+export X_STF_DATA_DIR=$DATA_DIR/stf
 
 # Make the data tmp dir if needed
 mkdir -p "$DATA_TMP_DIR" || fatal "Could not make data temporary directory"
@@ -246,6 +251,45 @@ mkdir -p /run/ssl
 chmod 0755 /run/ssl
 mkdir -p /run/ca-certificates
 chmod 0755 /run/ca-certificates
+
+# Generate TLS certificates upfront
+if [ -z "${WEBUI_SSL_SERVER_CERT}" ] && [ -z "${WEBUI_SSL_SERVER_KEY}" ] ; then
+    if [ "$(stdbool $DEV_ALLOW_SELF_SIGNED)" != "y" ] ; then
+        fatal "WEBUI_SSL_SERVER_CERT and WEBUI_SSL_SERVER_KEY are blank but self-signed certificates are not allowed."    
+    fi
+    
+    log "WEBUI_SSL_SERVER_CERT and WEBUI_SSL_SERVER_KEY are blank. Generating self-signed certificate."
+    WEBUI_SSL_SERVER_CERTCHAIN=""
+
+    export WEBUI_SSL_SERVER_CERT=/run/webui-generated.crt
+    export WEBUI_SSL_SERVER_KEY=/run/webui-generated.pem
+
+    (
+        cd /run
+        makecerts /run/webui-generated=$HOSTNAME,$WEBUI_DNS_NAME,$X_STF_PUBLIC_ADDR
+        if [ $? != 0 ]; then
+            fatal "Self-signed certificate generation failed."
+        fi
+        # Trust the CA we make.
+        cp -f /run/.crt /run/ca-certificates/generated.crt
+    )
+fi
+
+if [ -z "${WEBUI_SSL_SERVER_CERT}" ] ; then
+    fatal "SSL_SERVER_CERT is blank but other SSL fields are not. This is invalid."
+fi
+
+if [ -z "${WEBUI_SSL_SERVER_KEY}" ] ; then
+    fatal "SSL_SERVER_KEY is blank but other SSL fields are not. This is invalid."
+fi
+
+handle_file_input_envvar                WEBUI_SSL_SERVER_CERT    /run/nginx-cert.crt
+handle_file_input_envvar --append --allow-blank WEBUI_SSL_SERVER_CERT      /run/nginx-cert.crt
+handle_file_input_envvar                WEBUI_SSL_SERVER_KEY     /run/nginx-key.pem
+
+# Trust the certificate we use
+cp -f /run/webui-generated.crt /run/ca-certificates/nginx-cert.crt
+
 if [ -z "$PLATFORM_TLS_TRUST_CERTIFICATES" ]; then
     if [ "$(stdbool "$DEV_ALLOW_DEFAULT_TRUST")" = "y" ]; then
         # Allowing defaults
@@ -322,39 +366,6 @@ else
     warn "WARNING: ADMIN API authentication is DISABLED"
 fi
 
-if [ -z "${WEBUI_SSL_SERVER_CERT}" ] && [ -z "${WEBUI_SSL_SERVER_KEY}" ] ; then
-    if [ "$(stdbool $DEV_ALLOW_SELF_SIGNED)" != "y" ] ; then
-        fatal "WEBUI_SSL_SERVER_CERT and WEBUI_SSL_SERVER_KEY are blank but self-signed certificates are not allowed."    
-    fi
-    
-    log "WEBUI_SSL_SERVER_CERT and WEBUI_SSL_SERVER_KEY are blank. Generating self-signed certificate."
-    WEBUI_SSL_SERVER_CERTCHAIN=""
-
-    export WEBUI_SSL_SERVER_CERT=/run/webui-generated.crt
-    export WEBUI_SSL_SERVER_KEY=/run/webui-generated.pem
-
-    openssl req -x509 -newkey rsa:4096 \
-        -keyout $WEBUI_SSL_SERVER_KEY \
-        -out $WEBUI_SSL_SERVER_CERT \
-        -days 3065 -nodes \
-        -subj "/CN=$HOSTNAME"
-    if [ $? != 0 ]; then
-        fatal "Self-signed certificate generation failed."
-    fi
-fi
-
-if [ -z "${WEBUI_SSL_SERVER_CERT}" ] ; then
-    fatal "SSL_SERVER_CERT is blank but other SSL fields are not. This is invalid."
-fi
-
-if [ -z "${WEBUI_SSL_SERVER_KEY}" ] ; then
-    fatal "SSL_SERVER_KEY is blank but other SSL fields are not. This is invalid."
-fi
-
-handle_file_input_envvar                WEBUI_SSL_SERVER_CERT    /run/nginx-cert.crt
-handle_file_input_envvar --append --allow-blank WEBUI_SSL_SERVER_CERT      /run/nginx-cert.crt
-handle_file_input_envvar                WEBUI_SSL_SERVER_KEY     /run/nginx-key.pem
-
 # Set the join flag to the initial nodes
 if [ "$(stdbool ${DEV_STANDALONE})" = "n" ]; then
     log "Initial cluster nodes set"
@@ -410,6 +421,9 @@ p2 -t /etc/postgres_exporter.queries.yml.p2 -o /run/postgres_exporter.queries.ym
 log "Setting up RethinkDB..."
 generate_or_load_password RETHINKDB_ADMIN_PASSWORD
 
+log "Setting up STF API websecret..."
+generate_or_load_password WEB_SECRET
+
 log "Templating rethink DB configuration rile"
 p2 -t /etc/rethinkdb.conf.p2 -o /run/rethinkdb.conf
 
@@ -447,10 +461,11 @@ x509tomincrypt "${ANDROID_RUN_DIR}"/adbkey > "${ANDROID_RUN_DIR}"/adbkey.pub
 chmod 644 "${ANDROID_RUN_DIR}"/adbkey.pub
 
 # STF
-mkdir -p "${STF_DATA_DIR}"
-chmod 755 "${STF_DATA_DIR}"
+mkdir -p "${X_STF_DATA_DIR}"
+chmod 755 "${X_STF_DATA_DIR}"
 
-echo "$RETHINKDB_ADMIN_PASSWORD" > "${STF_DATA_DIR}/rethinkdb.password"
+echo "$RETHINKDB_ADMIN_PASSWORD" > "${X_STF_DATA_DIR}/rethinkdb.password"
+echo "$WEB_SECRET" > "${X_STF_DATA_DIR}/web_secret.password"
 
 log "Create logging fifo directory"
 mkdir -p /run/log

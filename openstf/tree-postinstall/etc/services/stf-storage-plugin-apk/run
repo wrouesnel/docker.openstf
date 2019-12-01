@@ -1,0 +1,20 @@
+#!/bin/bash
+SOURCE="${BASH_SOURCE[0]}"
+while [ -h "$SOURCE" ]; do # resolve $SOURCE until the file is no longer a symlink
+  DIR="$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )"
+  SOURCE="$(readlink "$SOURCE")"
+  [[ $SOURCE != /* ]] && SOURCE="$DIR/$SOURCE" # if $SOURCE was a relative symlink, we need to resolve it relative to the path where the symlink file was located
+done
+DIR="$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )"
+BASE_DIR="$(basename $DIR)"
+
+# Setup logging fifos.
+[ ! -e /run/log/${BASE_DIR} ] && mkfifo /run/log/${BASE_DIR}
+
+export RETHINKDB_ENV_AUTHKEY="$(cat ${X_STF_DATA_DIR}/rethinkdb.password)"
+
+exec stf storage-plugin-apk \
+    --port ${X_STF_STORAGE_PLUGIN_APK_PORT} \
+    --storage-url https://${X_STF_PUBLIC_ADDR} \
+    > /run/log/${BASE_DIR} 2>&1
+

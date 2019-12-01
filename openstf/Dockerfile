@@ -157,10 +157,34 @@ ENV \
     SMTP_FROM= \
     SMTP_USERNAME= \
     SMTP_PASSWORD= \
+    # Initial RethinkDB admin password
     RETHINKDB_ADMIN_PASSWORD= \
+    # Private key of ADB
     ADB_PRIVATE_KEY= \
-    STF_PUBLIC_ADDR= \
-    ALERT_EMAIL_ADDRESSES= \
+    # STF reaper heartbeat interval
+    X_STF_REAPER_HEARTBEAT_INTERVAL=30000 \
+    # STF API secret
+    WEB_SECRET= \
+    # STF process ports
+    X_STF_APP_PORT=3100 \
+    X_STF_AUTH_PORT=3200 \
+    X_STF_STORAGE_PLUGIN_APK_PORT=3300 \
+    X_STF_STORAGE_PLUGIN_IMAGE_PORT=3400 \
+    X_STF_STORAGE_TEMP_PORT=3500 \
+    X_STF_WEBSOCKET_PORT=3600 \
+    X_STF_API_PORT=3700 \
+    # STF provider heartbeat interval
+    X_STF_PROVIDER_HEARTBEAT_INTERVAL=10000 \
+    # STF provider port range
+    X_STF_PROVIDER_MIN_PORT=20000 \
+    # STF provider port end
+    X_STF_PROVIDER_MAX_PORT=25000 \
+    # Public IP or hostname of the STF service
+    X_STF_PUBLIC_ADDR= \
+    # STF internal addr
+    X_STF_APPSIDE_ADDR=127.0.0.1 \
+    X_STF_DEVSIDE_ADDR=127.0.0.1 \
+    # Dev settings
     DEV_ALLOW_SELF_SIGNED=no \
     DEV_ALLOW_EPHEMERAL_DATA=no \
     DEV_STANDALONE=no \

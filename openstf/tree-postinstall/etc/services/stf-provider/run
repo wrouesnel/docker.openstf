@@ -1,0 +1,26 @@
+#!/bin/bash
+SOURCE="${BASH_SOURCE[0]}"
+while [ -h "$SOURCE" ]; do # resolve $SOURCE until the file is no longer a symlink
+  DIR="$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )"
+  SOURCE="$(readlink "$SOURCE")"
+  [[ $SOURCE != /* ]] && SOURCE="$DIR/$SOURCE" # if $SOURCE was a relative symlink, we need to resolve it relative to the path where the symlink file was located
+done
+DIR="$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )"
+BASE_DIR="$(basename $DIR)"
+
+# Setup logging fifos.
+[ ! -e /run/log/${BASE_DIR} ] && mkfifo /run/log/${BASE_DIR}
+
+export RETHINKDB_ENV_AUTHKEY="$(cat ${X_STF_DATA_DIR}/rethinkdb.password)"
+
+exec stf provider \
+    --name "${X_STF_PUBLIC_ADDR}" \
+    --connect-sub tcp://${X_STF_DEVSIDE_ADDR}:7250 \
+    --connect-push tcp://${X_STF_DEVSIDE_ADDR}:7270 \
+    --storage-url https://${X_STF_PUBLIC_ADDR} \
+    --min-port=${X_STF_PROVIDER_MIN_PORT} \
+    --max-port=${X_STF_PROVIDER_MAX_PORT} \
+    --heartbeat-interval ${X_STF_PROVIDER_HEARTBEAT_INTERVAL} \
+    --screen-ws-url-pattern "wss://${X_STF_PUBLIC_ADDR}/d/${X_STF_PUBLIC_ADDR}/<%= serial %>/<%= publicPort %>" \
+    > /run/log/${BASE_DIR} 2>&1
+

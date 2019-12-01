@@ -30,6 +30,9 @@ protected behind the admin interface and require POST commands:
   Password of the admin user for accessing online management functions of the
   container (namely, the WebUI of alertmanager and cockroachdb).
 
+* `WEBUI_DNS_NAME`
+  DNS name which the Web UI is being hosted under.
+
 * `WEBUI_SSL_SERVER_CERT=`
   WebUI server identity certificate. May be a literal PEM certificate or a file path
   inside the container.
@@ -49,7 +52,6 @@ protected behind the admin interface and require POST commands:
 * `SMTP_PASSWORD=`
   password to use to login to the SMTP server.
   
-
 * `ALERT_EMAIL_ADDRESS=`
   email address to send alerts to.
   
@@ -59,8 +61,36 @@ protected behind the admin interface and require POST commands:
 * `ADB_PRIVATE_KEY` file path or literal ADB private key to set for the ADB server. Automatically
   generated if unset.
 
-* `STF_PUBLIC_ADDR` is the address STF should announce the URLs it is hosted at. If unset, defaults
+* `X_STF_PUBLIC_ADDR=` is the address STF should announce the URLs it is hosted at. If unset, defaults
   to the IP address of the container.
+
+* `X_STF_REAPER_HEARTBEAT_INTERVAL=30000` heartbeat interval passed to the reaper service.
+
+* `X_STF_APP_PORT=3100`
+
+* `X_STF_AUTH_PORT=3200`
+
+* `X_STF_STORAGE_PLUGIN_APK_PORT=3300`
+
+* `X_STF_STORAGE_PLUGIN_IMAGE_PORT=3400`
+
+* `X_STF_STORAGE_TEMP_PORT=3500`
+
+* `X_STF_WEBSOCKET_PORT=3600`
+
+* `X_STF_API_PORT=3700`
+
+* `X_STF_PROVIDER_HEARTBEAT_INTERVAL=10000`
+
+* `X_STF_PROVIDER_MIN_PORT=20000`
+
+* `X_STF_PROVIDER_MAX_PORT=25000`
+
+* `X_STF_APPSIDE_ADDR=127.0.0.1`
+  Application-side services.
+
+* `X_STF_DEVSIDE_ADDR=127.0.0.1`
+  Device side services.
 
 * `DEV_ALLOW_SELF_SIGNED=no`
   Allows a blank value for `SSL_SERVER_CERT` and `SSL_SERVER_KEY`. This causes
