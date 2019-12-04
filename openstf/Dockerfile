@@ -139,8 +139,39 @@ RUN \
 ARG URL_STF_REPO="https://github.com/openstf/stf.git"
 ARG URL_STF_COMMIT=d4efda70d7378e880b29547fd3dd394809ec488a
 
+# Ensure STF will be in the path
+ENV PATH /app/bin:$PATH
+
+# Clone the app source to a build dir
 RUN \
-    npm install -g "${URL_STF_REPO}#${URL_STF_COMMIT}" --unsafe-perm
+    useradd --system --create-home --shell /usr/sbin/nologin stf-build && \
+    useradd --system --create-home --shell /usr/sbin/nologin stf && \
+    mkdir -p /tmp/build /app && \
+    chown -R stf-build:stf-build /tmp/build /app
+
+USER stf-build
+
+RUN \
+    set -x && \
+    git clone "${URL_STF_REPO}" /app && \
+    cd /app && \
+    git checkout "${URL_STF_COMMIT}"
+
+RUN \
+    cd /app && \
+    export PATH=$PWD/node_modules/.bin:$PATH && \
+    npm install --loglevel http
+
+# Switch back to root for the container init
+USER root
+
+RUN \
+    chown -R stf:stf /app && \
+    cd /app && \
+    npm link
+
+# Check its working
+RUN stf --help
 
 # Install the post-install tree
 COPY tree-postinstall/ /
