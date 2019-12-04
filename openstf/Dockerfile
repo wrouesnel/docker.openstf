@@ -138,6 +138,7 @@ RUN \
 # STF
 ARG URL_STF_REPO="https://github.com/openstf/stf.git"
 ARG URL_STF_COMMIT=d4efda70d7378e880b29547fd3dd394809ec488a
+ARG STF_MERGE_PRS="1056"
 
 # Ensure STF will be in the path
 ENV PATH /app/bin:$PATH
@@ -155,7 +156,12 @@ RUN \
     set -x && \
     git clone "${URL_STF_REPO}" /app && \
     cd /app && \
-    git checkout "${URL_STF_COMMIT}"
+    git config --local --add remote.origin.fetch '+refs/pull/*/head:refs/remotes/origin/pr/*' && \
+    git config user.email "docker@local" && \
+    git config user.name "Docker Build" && \
+    git fetch --all && \
+    git checkout "${URL_STF_COMMIT}" && \
+    for pr in ${STF_MERGE_PRS} ; do git merge -m "Merged by docker build" "origin/pr/${pr}" ; done
 
 RUN \
     cd /app && \

@@ -4,11 +4,8 @@
 
 This is a self-contained container which builds and deploys [OpenSTF](https://openstf.io/).
 
-## New Deployment Instructions
-
-1. Stand up the container.
-1. Run database migrations.
-1. Create a superuser.
+The build is based off a specific git commit, as well as auto-merging a number of interesting
+pull-requests to provide what should be a complete experience.
 
 ## LDAP Parameters
 
