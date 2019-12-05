@@ -18,4 +18,6 @@ exec stf api \
     --port ${X_STF_API_PORT} \
     --connect-sub tcp://${X_STF_APPSIDE_ADDR}:7150 \
     --connect-push tcp://${X_STF_APPSIDE_ADDR}:7170 \
+    --connect-sub-dev tcp://${X_STF_DEVSIDE_ADDR}:7250 \
+    --connect-push-dev tcp://${X_STF_DEVSIDE_ADDR}:7270 \
     > /run/log/${BASE_DIR} 2>&1

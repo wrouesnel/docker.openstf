@@ -163,6 +163,17 @@ RUN \
     git checkout "${URL_STF_COMMIT}" && \
     for pr in ${STF_MERGE_PRS} ; do git merge -m "Merged by docker build" "origin/pr/${pr}" ; done
 
+ARG URL_PHANTOMJS="https://bitbucket.org/ariya/phantomjs/downloads/phantomjs-2.1.1-linux-x86_64.tar.bz2"
+
+USER root
+
+RUN \
+    cd /usr/local/bin && \
+    wget -qO- "${URL_PHANTOMJS}" | bzip2 -d | tar --strip-components=2 --wildcards -xvf - '*/bin/phantomjs' && \
+    chmod +x /usr/local/bin/phantomjs
+
+USER stf-build
+
 RUN \
     cd /app && \
     export PATH=$PWD/node_modules/.bin:$PATH && \
