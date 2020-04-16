@@ -137,8 +137,8 @@ RUN \
 
 # STF
 ARG URL_STF_REPO="https://github.com/openstf/stf.git"
-ARG URL_STF_COMMIT=d4efda70d7378e880b29547fd3dd394809ec488a
-ARG STF_MERGE_PRS="1056"
+ARG URL_STF_COMMIT=abaaa28f8db4fca9fb3dcd98d925ae4ddbb210fe
+ARG STF_MERGE_PRS=""
 
 # Ensure STF will be in the path
 ENV PATH /app/bin:$PATH
